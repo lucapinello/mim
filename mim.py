@@ -145,12 +145,12 @@ for k in xrange(n_repetitions_null_model):
             
         R1.append(seq_random)
     
-    random_vs_random_values[k]=mim(R,R1,ng,True,1)
+    random_vs_random_values[k]=mim(R,R1,ng,True)
     pb.update(k)
 pb.finish()    
 
 null_model=gaussian_kde(random_vs_random_values)  
-mim_value=mim(S,R,ng,True,1)
+mim_value=mim(S,R,ng,True)
 p_value = null_model.integrate_box(mim_value,inf)
 
 print '\n\n[MIM value: %f with a p-value of:%f]' % (mim_value, p_value)        

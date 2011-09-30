@@ -6,15 +6,10 @@ Created on Jul 6, 2011
 import numpy as np
 from numpy import log2, array, mean, zeros, hstack, vstack,digitize
 from numpy.random import randint, rand, permutation
-from bioutilities import int2nt,Sequence
-#from scipy.stats import rv_discrete, randint
 import cPickle
 import time
 import sys
-import mpi4py.rc
-#mpi4py.rc.initialize=False
-#mpi4py.rc.finalize=False
-from  mpi4py import MPI
+from bioutilities import int2nt, Sequence
 
 
 #helper  functions
@@ -120,88 +115,6 @@ class Ngram:
         
         return ngram_matrix,np.array([len(seq) for seq in seq_set],ndmin=2)
     
-     
-    def build_ngrams_fq_matrix_mpi(self,seq_set,non_redundant=True,ncpu=2):
-        #t1=time.clock()
-        if ncpu==1:
-            ngram_matrix=self.build_ngrams_fq_matrix(seq_set,non_redundant)
-        else:
-            #MPI.Init()
-            comm = MPI.COMM_SELF.Spawn(sys.executable,args=['build_ngrams_fq_matrix_mpi.py'],maxprocs=ncpu)
-            #print time.clock()-t1,'sec.', 'spawn'
-            #parameters={'ng':copy.copy(self),'non_redundant':non_redundant}
-            parameters={'ng':self.ngram_length,'non_redundant':non_redundant}
-            #print parameters
-            comm.bcast(parameters,root=MPI.ROOT)
-            #print 'dopo:',parameters
-            #print time.clock()-t1,'sec.', 'broadcast'
-            S=chunks(seq_set,ncpu)
-            #print S
-            
-            if non_redundant:
-                counts=[len(c)*self.number_of_non_redundant_ngrams for c in S]
-                full_matrix=zeros((len(seq_set),self.number_of_non_redundant_ngrams))
-            else:
-                counts=[len(c)*self.number_of_ngrams for c in S]
-                full_matrix=zeros((len(seq_set),self.number_of_ngrams))
-            
-            #print time.clock()-t1,'sec.', 'division'   
-            comm.scatter(S, root=MPI.ROOT)
-            #print time.clock()-t1,'sec.', 'scatter'
-            ngram_matrix=None
-            comm.Gatherv(ngram_matrix,(full_matrix,(counts,None)),root=MPI.ROOT)
-            #print time.clock()-t1,'sec.', 'gather'
-            ngram_matrix=full_matrix
-            comm.Disconnect()
-            #MPI.Finalize()
-        #print time.clock()-t1,'sec.', ' with:', ncpu,' cpu'
-        return ngram_matrix
-    
-    
-    def build_ngrams_profile_mpi(self,seq_set,non_redundant=True,ncpu=2):
-        #t1=time.clock()
-        if ncpu==1:
-            profile=self.build_ngrams_fq_matrix(seq_set,non_redundant)
-            profile=profile.sum(0)/profile.sum()
-        else:
-            #MPI.Init()
-            comm = MPI.COMM_SELF.Spawn(sys.executable,args=['build_ngrams_fq_profile_mpi.py'],maxprocs=ncpu)
-            #print time.clock()-t1,'sec.', 'spawn'
-            #parameters={'ng':copy.copy(self),'non_redundant':non_redundant}
-            parameters={'ng':self.ngram_length,'non_redundant':non_redundant}
-            #print parameters
-            comm.bcast(parameters,root=MPI.ROOT)
-                        
-            if non_redundant:
-                profile = zeros(self.number_of_non_redundant_ngrams)
-            else:
-                profile=zeros(self.number_of_ngrams)
-            
-            #print 'dopo:',parameters
-            #print time.clock()-t1,'sec.', 'broadcast'
-            S=chunks(seq_set,ncpu)
-            #print S
-            
-            #print time.clock()-t1,'sec.', 'division'   
-            comm.scatter(S, root=MPI.ROOT)
-            #print time.clock()-t1,'sec.', 'scatter'
-            
-            comm.Reduce(None,profile,op=MPI.SUM, root=MPI.ROOT)
-            #print 'Profile:', profile, len(profile)
-            
-            #print 'somma:',profile.sum()
-            #profile/=profile.sum()
-            #print 'Profile:', profile
-
-            #print time.clock()-t1,'sec.', 'reduce'
-            comm.Disconnect()
-            #MPI.Finalize()
-        #print time.clock()-t1,'sec.', ' with:', ncpu,' cpu'
-        return profile
-    
-    
-    
-    
     def save_to_file(self,filename=None):
         if not filename:
             filename='ng'+str(self.ngram_length)
@@ -230,270 +143,23 @@ def symmetrized_kldiv(p,q,eps= np.finfo(float).eps):
     q/=q.sum()
     return mean( sum(p*log2(p/q)),sum(q*log2(q/p))) 
 
-def calculate_pwm_bits(pwm,p_acgt=array([0.25,0.25,0.25,0.25]),eps= np.finfo(float).eps):
-    e=0
-    for i in range(pwm.shape[0]):
-        pwm_p=pwm[i,:]+eps
-        pwm_p/=pwm_p.sum()
-        e+=sum(pwm_p*log2(pwm_p/p_acgt))
 
-    return e
+def calculate_mim_old(S,R,ng=Ngram(),non_redundant=True):
 
-pwm_row = lambda e:[i  for i in array([1-3*e,e,e,e])[permutation(4)]]
-generate_pwm= lambda e,n: vstack([pwm_row(e) for _ in range(n)])
-
-def generate_motif_instance(pwm):
-    motif=['']*pwm.shape[0]
-    for position in range(pwm.shape[0]):
-        #bg_model= rv_discrete(name='bg', values=([0, 1, 2,3], pwm[position,:]))
-        #motif[position]=bg_model.rvs(size=1)[0]
-        motif[position]=randsample(pwm[position,:],1)[0]
-    return ''.join([int2nt[c] for c in motif])
-
-def generate_random_sequence(length,p_acgt=array([0.25,0.25,0.25,0.25])):
-    #bg_model= rv_discrete(name='bg', values=([0, 1, 2,3], p_acgt))
-    #return ''.join([int2nt[c] for c in bg_model.rvs(size=length)])
-    return ''.join([int2nt[c] for c in  randsample(p_acgt,length)]) #digitize rocks!
-
-def generate_random_sequence_with_motif(length,pwm,p_acgt=array([0.25,0.25,0.25,0.25])):
-    #bg_model= rv_discrete(name='bg', values=([0, 1, 2,3],p_acgt))
-    #seq=''.join([int2nt[c] for c in bg_model.rvs(size=length)])
-    seq=''.join([int2nt[c] for c in  randsample(p_acgt,length)]) #digitize rocks!
-    motif=generate_motif_instance(pwm)
-    st_point=randint(0,length-len(motif)+1)
-    return ''.join([seq[0:st_point],motif,seq[st_point+len(motif):]])
-
-def generate_sequence_set_random(number_of_sequences,length,p_acgt=array([0.25,0.25,0.25,0.25])):
-    #seq_set=[None]*number_of_sequences
-    seq_set=[]
-    for _ in xrange(number_of_sequences):
-        #seq_set[i]=generate_random_sequence(length,p_acgt)
-        seq_set.append(generate_random_sequence(length,p_acgt))
-    
-    return seq_set
-
-def generate_sequence_set_with_motif(number_of_sequences,length,pwm,p_acgt=array([0.25,0.25,0.25,0.25])):
-    #seq_set=[None]*number_of_sequences
-    seq_set=[]
-    for _ in xrange(number_of_sequences):
-        #seq_set[i]=generate_random_sequence_with_motif(length,pwm,p_acgt)
-        seq_set.append(generate_random_sequence_with_motif(length,pwm,p_acgt))
-  
-    return seq_set
-
-def generate_sequence_set_random_mpi(number_of_sequences,length,p_acgt=array([0.25,0.25,0.25,0.25]),ncpu=1):
-    #t1=time.clock()   
-    if ncpu==1:
-        seq_set=generate_sequence_set_random(int(number_of_sequences),length,p_acgt)
-    else:   
-        #MPI.Init()
-        number_of_sequences_to_process=number_of_sequences/(ncpu)
-        parameters=hstack([number_of_sequences_to_process,length,p_acgt])
-        
-        comm = MPI.COMM_SELF.Spawn(sys.executable,args=['generate_seq_set_random_mpi.py'],maxprocs=ncpu-1)
-        comm.Bcast(parameters, root=MPI.ROOT)
-        
-        number_of_sequences_to_process+=(number_of_sequences- (number_of_sequences/(ncpu))*(ncpu))
-        
-        #print number_of_sequences,number_of_sequences_to_process
-        
-        seq_set=generate_sequence_set_random(int(number_of_sequences_to_process),length,p_acgt)
-        for i in range(0,ncpu-1):
-            #print 'wait data from',i
-            seq_set+=comm.recv(source=i,tag=99)
-            #print 'received data from',i
-        
-        comm.Disconnect()
-        #MPI.Finalize()
-    #print 'Sequences generated:',len(seq_set)
-    #print 'Time elapsed:',time.clock()-t1,' sec.'
-    return seq_set
-
-def generate_sequence_set_with_motif_mpi(number_of_sequences,length,pwm,p_acgt=array([0.25,0.25,0.25,0.25]),ncpu=1):
-    #t1=time.clock()   
-    if ncpu==1:
-        seq_set=generate_sequence_set_with_motif(int(number_of_sequences),length,pwm,p_acgt)
-    else:   
-        #MPI.Init()
-        #print pwm
-        number_of_sequences_to_process=number_of_sequences/(ncpu)
-        parameters=hstack([number_of_sequences_to_process,length,p_acgt,list(pwm.shape)])
-        #print parameters
-        comm = MPI.COMM_SELF.Spawn(sys.executable,args=['generate_seq_set_with_motif_mpi.py'],maxprocs=ncpu-1)
-        comm.Bcast(parameters, root=MPI.ROOT)
-        comm.Bcast(pwm, root=MPI.ROOT)
-        number_of_sequences_to_process+=(number_of_sequences- (number_of_sequences/(ncpu))*(ncpu))
-        
-        #print number_of_sequences,number_of_sequences_to_process,pwm
-        
-        seq_set=generate_sequence_set_with_motif(int(number_of_sequences_to_process),length,pwm,p_acgt)
-        for i in range(0,ncpu-1):
-            #print 'wait data from',i
-            seq_set+=comm.recv(source=i,tag=99)
-            #print 'received data from',i
-        
-        comm.Disconnect()
-        #MPI.Finalize()
-    #print 'Sequences generated:',len(seq_set)
-    #print 'Time elapsed:',time.clock()-t1,' sec.'
-    return seq_set
-
-def extract_sequence_set_random_from_genome(coordinates,genome):
-    pass
-
-def extract_sequence_set_from_genome(coordinates,genome):
-    pass
-
-def calculate_mim_old(S,R,ng=Ngram(),non_redundant=True,ncpu=1):
-    if ncpu==1:
-        if non_redundant:
-            N_S,seq_lengths=ng.build_ngrams_fq_matrix(S)
-            N_R,seq_lengths=ng.build_ngrams_fq_matrix(R)
-        else:
-            N_S,seq_lengths=ng.build_ngrams_fq_matrix(S,non_redundant=False)
-            N_R,seq_lengths=ng.build_ngrams_fq_matrix(R,non_redundant=False)
-            
+    if non_redundant:
+        N_S,seq_lengths=ng.build_ngrams_fq_matrix(S)
+        N_R,seq_lengths=ng.build_ngrams_fq_matrix(R)
     else:
-        if non_redundant:
-            N_S,seq_lengths=ng.build_ngrams_fq_matrix_mpi(S,ncpu=ncpu)
-            N_R,seq_lengths=ng.build_ngrams_fq_matrix_mpi(R,ncpu=ncpu)
-        else:
-            N_S,seq_lengths=ng.build_ngrams_fq_matrix_mpi(S,non_redundant=False,ncpu=ncpu)
-            N_R,seq_lengths=ng.build_ngrams_fq_matrix_mpi(R,non_redundant=False,ncpu=ncpu)
+        N_S,seq_lengths=ng.build_ngrams_fq_matrix(S,non_redundant=False)
+        N_R,seq_lengths=ng.build_ngrams_fq_matrix(R,non_redundant=False)
 
-    #N_S=N_S[:,ng.non_redundant()]
-    #N_R=N_R[:,ng.non_redundant()]
-    
-    #STD deviation normalization?
-
-
-
-
-
-    
     N_S=N_S/np.tile(seq_lengths.T,(1,N_S.shape[1]))
     N_R=N_R/np.tile(seq_lengths.T,(1,N_S.shape[1]))
     
     N_S=N_S/N_R.std(0)
     N_R=N_R/N_R.std(0)  
     
-    
     P_S=N_S.sum(0)/N_S.sum()
     P_R=N_R.sum(0)/N_R.sum()
     
     return symmetrized_kldiv(P_S,P_R)
-
-
-def calculate_mim(S,R,ng=Ngram(),non_redundant=True,ncpu=1,symmetric=True):
-    P_S=ng.build_ngrams_profile_mpi(S, non_redundant, ncpu)
-    P_R=ng.build_ngrams_profile_mpi(R, non_redundant, ncpu)
-    if symmetric:
-        return symmetrized_kldiv(P_S,P_R)
-    else:
-        return kldiv(P_S,P_R)
-    
-            
-#TESTING        
-
-def main():
-
-    ###PARAMETERS###
-    print 'main'
-    alphabet_size=4
-    ngram_length=8
-    seq_length=15
-    n_seq=500
-    print 'load'
-    t1=time.clock()
-    ng=Ngram.load_from_file('ng'+str(ngram_length))
-    print time.clock()-t1,'sec.'
-    print 'loaded'
-    
-    p_acgt=array([0.15,0.35,0.35,0.15])
-    ep=0
-    pwm=array([[ep,ep,ep,1-3.0*ep,ep,1-3.0*ep],
-           [ep,ep,ep,ep,1-3.0*ep,ep],
-           [ep,ep,1-3.0*ep,ep,ep,ep],
-           [1-3.0*ep,1-3.0*ep,ep,ep,ep,ep,]]).T.copy()
-           
-    
-    
-    #seq_set= generate_sequence_set_random_mpi(10000,1000,p_acgt=array([0.25,0.25,0.25,0.25]),ncpu=1)
-    R= generate_sequence_set_random_mpi(5000,1000,p_acgt=array([0.25,0.25,0.25,0.25]),ncpu=4)
-    #seq_set= generate_sequence_set_with_motif_mpi(10000,1000,pwm,p_acgt=array([0.25,0.25,0.25,0.25]),ncpu=1)
-    #print 'generiamo il seq set'
-    S= generate_sequence_set_with_motif_mpi(5000,1000,pwm,p_acgt=array([0.25,0.25,0.25,0.25]),ncpu=4)
-    #seq_set=['aaaatttt','aaaatttt','aaaatttt','aaaatttt']
-    print 'seq set generato'
-    #a=ng.build_ngrams_fq_matrix_mpi(S, True, ncpu=1)
-   # a=ng.build_ngrams_profile_mpi(seq_set, True, ncpu=6)
-   # b=ng.build_ngrams_profile_mpi(seq_set, True, ncpu=1)
-    
-    t1=time.clock()
-    print 'new,sp:',calculate_mim(S,R,ng,True,1)
-    print time.clock()-t1,'sec.\n\n'
-    
-    t1=time.clock()
-    print 'new,mp:',calculate_mim(S,R,ng,True,4)
-    print time.clock()-t1,'sec.\n\n'
-    t1=time.clock()    
-    print 'old,sp:',calculate_mim_old(S,R,ng,True,1)
-    print time.clock()-t1,'sec.\n\n'    
-    t1=time.clock()    
-    print 'old,mp:',calculate_mim_old(S,R,ng,True,4)
-    print time.clock()-t1,'sec.\n\n'    
-    
-
-    '''
-
-    print calculate_pwm_bits(m_ref )
-    
-    
-    S= generate_sequence_set_random_mpi(n_seq,10)
-    print len(S)
-    #print generate_motif_instance(m_ref)
-    
-    #print generate_random_sequence(length,p_acgt)
-    #print generate_random_sequence_with_motif(length,m_ref,p_acgt)
-    
-    
-    
-    
-    ng=Ngram(ngram_length,alphabet_size)
-    #print ng.all_ngram
-    
-    seq=generate_random_sequence(seq_length,p_acgt)
-    print seq
-    print Sequence.reverse_complement(seq)
-    print nonzero(ng.build_ngram_fq_vector(seq))[0]
-    print ng.all_ngram
-    ngrams=[ ng.index2ngram[i] for i in nonzero(ng.build_ngram_fq_vector(seq))[0]]
-    print 'ngrams:',ngrams
-    
-    for ngram in ngrams:
-        assert(ngram in seq or ngram in Sequence.reverse_complement(seq))
-    
-    print 'Non redundant ngrams:',ng.non_redundant()
-    print ng.all_ngram
-    print ng.non_redundant()
-
-    for k in range(3,11):
-        ng=Ngram(k)
-        ng.save_to_file()
-        print ng.ngram_length
-    
-
-    for k in range(3,11):
-        t1=time.clock()
-        ng=Ngram.load_from_file('ng'+str(k))
-        print ng.ngram_length
-        print time.clock()-t1,'sec.'
-    
-    '''
-
-
-
-if __name__ == "__main__":
-    main()
-
-
