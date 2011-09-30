@@ -1,5 +1,7 @@
 [MIM: Motif Independet Metric - Luca Pinello]
 
+This software calculates a measure of sequence specificity called Motif Independent Metric. 
+
 [INSTALLATION AND REQUIREMENTS]
 
 In order to use the MIM software you need:
@@ -13,16 +15,16 @@ and the following modules:
 
 [USAGE]
 
-The program takes in input a proper BED file (http://genome.ucsc.edu/FAQ/FAQformat.html#format1) containing 
+The program takes in input a proper BED file (http://genome.ucsc.edu/FAQ/FAQformat.html#format1) containing:
+ 
 1) The coordinates of your sequences for some genome of reference.
-
 2) The fasta file of your genome of reference (http://hgdownload.cse.ucsc.edu/downloads.html)
 
 To launch the program from a shell type:
 
 python mim.py bed_file.bed /path_to_your_genome_directory/
 
-To see a list of the optional arguments with a short explanation, please type just:
+To see a list of the optional arguments with a short explanation, please just type:
 
 python mim.py
 
