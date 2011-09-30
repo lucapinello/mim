@@ -1,0 +1,24 @@
+[MIM: Motif Independet Metric - Luca Pinello]
+
+[INSTALLATION AND REQUIREMENTS]
+
+IN order to use the MIM you need:
+
+python 2.7(http://www.python.org/getit/) 
+
+and the following modules:
+
+-numpy (http://sourceforge.net/projects/numpy/files/NumPy/1.6.1/)
+-scipy (http://sourceforge.net/projects/scipy/files/scipy/0.9.0/)
+
+[USAGE]
+
+The program take in input a proper BED file (http://genome.ucsc.edu/FAQ/FAQformat.html#format1) that contains the coordinate on some genome of reference
+
+The fasta file of your genome of reference (http://hgdownload.cse.ucsc.edu/downloads.html)
+
+To launch the program from a shell type:
+
+python mim.py bed_file.bed /path_to_your_genome_directory/
+
+The program will report the MIM value for the sequence extracted from the bed file and its p-value.
