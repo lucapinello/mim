@@ -4,21 +4,26 @@
 
 In order to use the MIM software you need:
 
-python 2.7(http://www.python.org/getit/) 
+-Python 2.7(http://www.python.org/getit/) 
 
 and the following modules:
 
--numpy (http://sourceforge.net/projects/numpy/files/NumPy/1.6.1/)
--scipy (http://sourceforge.net/projects/scipy/files/scipy/0.9.0/)
+-Numpy (http://sourceforge.net/projects/numpy/files/NumPy/1.6.1/)
+-Scipy (http://sourceforge.net/projects/scipy/files/scipy/0.9.0/)
 
 [USAGE]
 
-The program take in input a proper BED file (http://genome.ucsc.edu/FAQ/FAQformat.html#format1) that contains the coordinate on some genome of reference
+The program takes in input a proper BED file (http://genome.ucsc.edu/FAQ/FAQformat.html#format1) containing 
+1) The coordinates of your sequences for some genome of reference.
 
-The fasta file of your genome of reference (http://hgdownload.cse.ucsc.edu/downloads.html)
+2) The fasta file of your genome of reference (http://hgdownload.cse.ucsc.edu/downloads.html)
 
 To launch the program from a shell type:
 
 python mim.py bed_file.bed /path_to_your_genome_directory/
 
-The program will report the MIM value for the sequence extracted from the bed file and its p-value.
+To see a list of the optional arguments with a short explanation, please type just:
+
+python mim.py
+
+At the end of the execution the program will report the MIM value for the sequences extracted from the bed file and its p-value.
