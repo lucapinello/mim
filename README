@@ -19,7 +19,7 @@ The program takes as input:
 
 1) A proper BED file (http://genome.ucsc.edu/FAQ/FAQformat.html#format1) containing the coordinates of your sequences for some genome of reference
 
-2) The fasta file of your genome of reference (http://hgdownload.cse.ucsc.edu/downloads.html)
+2) The fasta files of your genome of reference (http://hgdownload.cse.ucsc.edu/downloads.html)
 
 To launch the program from a shell type:
 
