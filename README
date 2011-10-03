@@ -13,6 +13,11 @@ and the following modules:
 -Numpy (http://sourceforge.net/projects/numpy/files/NumPy/1.6.1/)
 -Scipy (http://sourceforge.net/projects/scipy/files/scipy/0.9.0/)
 
+Note: 
+If you are using  64bit version Python on Windows you can download the 64 bit version of these modules from:
+
+http://www.lfd.uci.edu/~gohlke/pythonlibs/
+
 [USAGE]
 
 The program takes as input:
@@ -30,3 +35,7 @@ To see a list of the optional arguments with a short explanation, please just ty
 python mim.py
 
 At the end of the execution the program will report the MIM value for the sequences extracted from the bed file and its p-value.
+
+[Testing the software]
+You can test the software with the provide bed sample file(sample_hg18.bed) and the human genome (hg18) fasta files from here:
+http://hgdownload.cse.ucsc.edu/goldenPath/hg18/bigZips/chromFa.zip
