@@ -14,7 +14,7 @@ and the following modules:
 -Scipy (http://sourceforge.net/projects/scipy/files/scipy/0.9.0/)
 
 Note: 
-If you are using the 64 bit version Python on Windows, you can download the 64 bit version of these modules from:
+If you are using the Windows 64 bit version of Python, you must download the 64 bit version of the modules from:
 
 http://www.lfd.uci.edu/~gohlke/pythonlibs/
 
@@ -39,12 +39,11 @@ At the end of the execution the program will report the MIM value for the sequen
 [TESTING EXAMPLE]
 
 1) Download the human genome (hg18) fasta files from here: http://hgdownload.cse.ucsc.edu/goldenPath/hg18/bigZips/chromFa.zip
-and Extract all the files from chromFa.zip in a directory (for example hg18).
+and extract all the files from chromFa.zip in a directory, (for example hg18_directory).
 
 2) Run the program with the following command:
 
-python sample_hg18.bed path_to_hg18_directory
-
+python sample_hg18.bed hg18_directory
 
 Notes: If you want to build a more realiable null model, you can use the parameter --null_rep to increase the sampling accuracy (the default value is 1000):
 
