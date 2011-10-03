@@ -4,7 +4,6 @@ Created on May 3, 2011
 @author: lpinello
 '''
 import os, glob, string
-import xlrd
 from scipy.stats import rv_discrete
 import mmap
 import math
@@ -96,41 +95,7 @@ class Coordinate:
     
     def __len__(self):
         return self.bpend-self.bpstart+1
-    
-    
-    @classmethod
-    def read_coordinates_from_xls(cls,filename, chr_id_cl, bpstart_cl, bp_end_cl,name_cl=None,score_cl=None, strand_cl=None,header_lines=1):
-        try:
-            wb = xlrd.open_workbook(filename)
-            sh = wb.sheet_by_index(0)
-            chr_id_column = sh.col_values(chr_id_cl)[header_lines:]
-            bpstart_column = sh.col_values(bpstart_cl)[header_lines:]
-            bpend_column = sh.col_values(bp_end_cl)[header_lines:]
-    
-            coordinates = list()
-            
-            if name_cl:
-                name_column = sh.col_values(name_cl)[header_lines:]
-            else:
-                name_column=['ND']*len(chr_id_column)
-            
-            if score_cl:
-                score_column = sh.col_values(score_cl)[header_lines:]
-            else:
-                score_column=[1.0]*len(chr_id_column)
-            
-            if strand_cl:
-                strand_column = sh.col_values(strand_cl)[header_lines:]
-            else:
-                strand_column=['ND']*len(chr_id_column)
-                
-
-            for chr_id, bpstart, bpend, name,score,strand in zip(chr_id_column, bpstart_column, bpend_column, name_column, score_column,strand_column):
-                coordinates.append(Coordinate(str(chr_id), int(bpstart), int(bpend),name,float(score),strand))       
-    
-            return coordinates
-        except:
-            print "Error missing file or wrong columns number"
+   
     
     @classmethod
     def bed_to_coordinates(cls,bed_file,header_lines=0, cl_chr_id=0, cl_bpstart=1, cl_bpend=2, cl_name=3, cl_score=4, cl_strand=5):
