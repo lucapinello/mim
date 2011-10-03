@@ -39,7 +39,7 @@ At the end of the execution the program will report the MIM value for the sequen
 [TESTING EXAMPLE]
 
 1) Download the human genome (hg18) fasta files from here: http://hgdownload.cse.ucsc.edu/goldenPath/hg18/bigZips/chromFa.zip
-and extract all the files from chromFa.zip in a directory, (for example hg18_directory).
+and extract all the files from chromFa.zip in a directory (for example hg18_directory).
 
 2) Run the program with the following command:
 
