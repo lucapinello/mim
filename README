@@ -46,7 +46,7 @@ and Extract all the files from chromFa.zip in a directory (for example hg18).
 python sample_hg18.bed path_to_hg18_directory
 
 
-Notes: If you want to build a more realiable null model, you can use the parameter --null_rep to increase the sampling accurracy (the default value is 1000):
+Notes: If you want to build a more realiable null model, you can use the parameter --null_rep to increase the sampling accuracy (the default value is 1000):
 
 python sample_hg18.bed path_to_hg18_directory --null_rep 5000
 
