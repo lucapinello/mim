@@ -47,11 +47,11 @@ python sample_hg18.bed hg18_directory
 
 Notes: If you want to build a more realiable null model, you can use the parameter --null_rep to increase the sampling accuracy (the default value is 1000):
 
-python sample_hg18.bed path_to_hg18_directory --null_rep 5000
+python sample_hg18.bed hg18_directory --null_rep 5000
 
 You can also use a null model that shuffle the input sequences instead of random sampling sequence from genome with the optional parameter --null_model:
 
-python sample_hg18.bed path_to_hg18_directory --null_model shuffle
+python sample_hg18.bed hg18_directory --null_model shuffle
 
 
 
