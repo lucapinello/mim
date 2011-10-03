@@ -22,9 +22,9 @@ http://www.lfd.uci.edu/~gohlke/pythonlibs/
 
 The program takes as input:
 
-1) A proper BED file (http://genome.ucsc.edu/FAQ/FAQformat.html#format1) containing the coordinates of your sequences for some genome of reference
+1) A proper BED file (http://genome.ucsc.edu/FAQ/FAQformat.html#format1) containing the coordinates of your sequences for some reference genome
 
-2) The fasta files of your genome of reference (http://hgdownload.cse.ucsc.edu/downloads.html)
+2) The fasta files of your reference genome (http://hgdownload.cse.ucsc.edu/downloads.html)
 
 To launch the program from a shell type:
 
